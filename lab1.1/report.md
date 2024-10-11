@@ -132,7 +132,7 @@ sgsoul@honor:/etc$ sudo service nginx start
 sgsoul@honor:/etc$
 ```
 
-Проверяем, что у нас красота и все работает: 
+Проверяем, что и все работает: 
 
 ```bash
 sgsoul@honor:~$ curl -k https://project1.local/
@@ -140,3 +140,8 @@ hello pr1
 sgsoul@honor:~$ curl -k https://project2.local/
 hello pr2
 ```
+
+Добавим немножко стиля и красота!
+![Снимок экрана 2024-10-11 202743](https://github.com/user-attachments/assets/3d7475c1-335b-4025-97fe-bc9b78a6aa5b)
+
+
