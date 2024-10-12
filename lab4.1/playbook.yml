@@ -1,0 +1,9 @@
+---
+- hosts: grafana
+  become: yes
+  # connection: local
+  roles:
+    - role: grafana
+      vars:
+        grafana_admin_user: "admin"
+        grafana_admin_password: "admin"
