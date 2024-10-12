@@ -8,10 +8,10 @@
 В Readme описать каждую из плохих практик в плохом файле, почему она плохая и как в хорошем она была исправлена, как исправление повлияло на результат
 </details>
 
-## Это база
+<details>
+<summary> Это база </summary>
 
-Была написана роль для раскатки grafana + плейбук. 
-
+Была написана роль для раскатки grafana + плейбук. Для неё так же был написан фундамент `.gitlab-ci` который мы будем сначала портить, а потом исправлять. 
 
 ```yaml
 ---
@@ -66,8 +66,9 @@ check_grafana:
 
 хорошего тут мало конечно...
 ![image](https://github.com/user-attachments/assets/d88c6d0e-bc00-40cf-9900-dab0e41dae14)
+</details>
 
-## чем дальше в лес
+## Чем дальше в лес
 
 #### Использование нестабильного образа 
 Используется `ubuntu:latest`, что не очень хорошо, так как `latest`  может привести к неожидаемому поведению, при обновлении базового образа.  
@@ -85,8 +86,13 @@ check_grafana:
 Повторимся, линтеры штука полезная, но прогонять их на каждом коммите - не наш вариант, это избыточно и прошлый век.
 Меням на запуск при `merge requests`и уменьшаем количество ненужных проверок.
 
+#### Отсутствие кэширования зависимостей
+Каждый раз, когда пайплайн выполняется, происходит установка зависимостей (например, curl и flake8), что увеличивает время выполнения.
+В идеале использовать кэширование для зависимостей, чтобы повторно не устанавливать их при каждом запуске пайплайна, что мы и делаем =) 
 
 ```yaml
+---
+
 stages:
   - setup
   - lint
@@ -137,57 +143,25 @@ check_grafana:
 ![image](https://github.com/user-attachments/assets/79ca12e0-1724-45d4-8c6d-ba8f2899cf2f)
 
 
-## что-то ещё
+## Тем шкибиди доп ес ес 
+
+Что бы была вообще конфетка можно дополнить сиай следующими параметрами:
+
+#### Оптимизация порядка шагов и параллелизм
+Запускать стадии можно и нужно параллельно, если они не зависят друг от друга.
+
+#### Проверка версий сервисов и инструментов
+Добавление проверки версий используемых сервисов и зависимостей для повышения предсказуемости. А ещё это +aura.
+
+#### Использование артефактов
+Сохранение логов и артефактов тестов для анализа. Потомки скажут спасибо.
+
+#### Определение таймаутов
+Установка таймаутов чтобы предотвратить зависания pipeline.
 
 ```yaml
-stages:
-  - setup
-  - lint
-  - test
+---
 
-variables:
-  GRAFANA_PORT: 3000
-  GRAFANA_VERSION: 9.0.0
-
-setup_grafana:
-  stage: setup
-  image: ubuntu:20.04
-  services:
-    - name: grafana/grafana:$GRAFANA_VERSION
-      alias: grafana
-  script:
-    - apt-get update && apt-get install -y curl
-    - echo "Waiting for Grafana to start..."
-    - for i in {1..10}; do curl -I http://grafana:$GRAFANA_PORT && break || sleep 3; done
-  only:
-    - main
-
-lint:
-  stage: lint
-  image: python:3.9-alpine
-  script:
-    - pip install flake8
-    - flake8 .
-  only:
-    - merge_requests 
-
-check_grafana:
-  stage: test
-  image: curlimages/curl:latest
-  script:
-    - echo "Checking if Grafana is running on localhost:$GRAFANA_PORT..."
-    - for i in {1..10}; do curl -I http://grafana:$GRAFANA_PORT && break || sleep 3; done
-  services:
-    - name: grafana/grafana:$GRAFANA_VERSION
-      alias: grafana
-  only:
-    - main
-```
-![image](https://github.com/user-attachments/assets/5f066bad-9cf7-4528-8cff-8eb00abcbb3c)
-
-## конфетка
-
-```yaml
 stages:
   - setup
   - lint
@@ -258,6 +232,7 @@ lint_python_and_shell:
     paths:
       - logs/lint_parallel/
     expire_in: 1 week
-
 ```
-![image](https://github.com/user-attachments/assets/ea9eb262-d1d8-4d35-8d6c-9cb5eed43288)
+![image](https://github.com/user-attachments/assets/5f066bad-9cf7-4528-8cff-8eb00abcbb3c)
+
+Смотрим ещё как время сократилось! Ну красота! 
