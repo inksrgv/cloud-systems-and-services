@@ -168,3 +168,79 @@ check_grafana:
 ```
 ![image](https://github.com/user-attachments/assets/5f066bad-9cf7-4528-8cff-8eb00abcbb3c)
 
+## конфетка
+
+```yaml
+stages:
+  - setup
+  - lint
+  - test
+
+cache:
+  paths:
+    - .cache/pip
+
+variables:
+  GRAFANA_PORT: 3000
+  GRAFANA_VERSION: 9.0.0
+  TIMEOUT: 30 
+
+setup_grafana:
+  stage: setup
+  image: ubuntu:20.04
+  services:
+    - name: grafana/grafana:$GRAFANA_VERSION
+      alias: grafana
+  script:
+    - apt-get update && apt-get install -y curl
+    - echo "Waiting for Grafana to start..."
+    - for i in $(seq 1 $TIMEOUT); do curl -I http://grafana:$GRAFANA_PORT && break || sleep 1; done || (echo "Grafana not started in $TIMEOUT seconds" && exit 1)
+  only:
+    - main
+
+lint:
+  stage: lint
+  image: python:3.9-alpine
+  script:
+    - pip install --cache-dir .cache/pip flake8
+    - flake8 .
+  only:
+    - merge_requests
+  artifacts:
+    paths:
+      - logs/lint/
+    expire_in: 1 week  
+
+check_grafana:
+  stage: test
+  image: curlimages/curl:latest
+  services:
+    - name: grafana/grafana:$GRAFANA_VERSION
+      alias: grafana
+  script:
+    - echo "Checking if Grafana is running on localhost:$GRAFANA_PORT..."
+    - for i in $(seq 1 $TIMEOUT); do curl -I http://grafana:$GRAFANA_PORT && break || sleep 1; done || (echo "Grafana not responding in $TIMEOUT seconds" && exit 1)
+  only:
+    - main
+  artifacts:
+    paths:
+      - logs/test/
+    expire_in: 1 week
+
+lint_python_and_shell:
+  stage: lint
+  image: python:3.9-alpine
+  parallel: 2 
+  script:
+    - echo "Running multiple lint jobs in parallel"
+    - pip install --cache-dir .cache/pip flake8
+    - flake8 .
+  only:
+    - merge_requests
+  artifacts:
+    paths:
+      - logs/lint_parallel/
+    expire_in: 1 week
+
+```
+![image](https://github.com/user-attachments/assets/ea9eb262-d1d8-4d35-8d6c-9cb5eed43288)
