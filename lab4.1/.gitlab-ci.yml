@@ -1,0 +1,46 @@
+stages:
+  - setup
+  - lint
+  - test
+
+variables:
+  GRAFANA_PORT: 3000
+  GRAFANA_VERSION: 9.0.0
+
+setup_grafana:
+  stage: setup
+  image: ubuntu:latest
+  services:
+    - name: grafana/grafana:$GRAFANA_VERSION
+      alias: grafana
+  script:
+    - echo "Installing curl..."
+    - apt-get update && apt-get install -y curl  # Устанавливаем curl
+    - echo "Grafana service is being set up"
+    - sleep 10  # Даем время для загрузки сервиса
+    - curl -I http://grafana:$GRAFANA_PORT || { echo "Grafana did not respond"; exit 1; }
+  only:
+    - main
+
+lint:
+  stage: lint
+  image: python:3.9
+  script:
+    - echo "Running linters..."
+    - pip install flake8
+    - flake8 .
+  only:
+    - main
+
+check_grafana:
+  stage: test
+  image: curlimages/curl:latest
+  script:
+    - echo "Checking if Grafana is running on localhost:$GRAFANA_PORT..."
+    - sleep 10
+    - curl -I http://grafana:$GRAFANA_PORT || { echo "Grafana is not responding!"; exit 1; }
+  services:
+    - name: grafana/grafana:$GRAFANA_VERSION
+      alias: grafana
+  only:
+    - main

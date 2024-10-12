@@ -1,0 +1,4 @@
+---
+grafana_version: latest
+grafana_config_path: /etc/grafana/grafana.ini
+grafana_service_name: grafana-server
