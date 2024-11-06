@@ -87,7 +87,7 @@ server {
 }
 ```
 
-Теперь, чтобы nginx'у было хорошо нужно создать Создайте символические ссылки в `sites-enabled`:
+Теперь, чтобы nginx'у было хорошо нужно создать символические ссылки в `sites-enabled`:
 
 ```bash
 sgsoul@honor:/etc/nginx/sites-enabled$ ll
