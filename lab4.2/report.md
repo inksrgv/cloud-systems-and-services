@@ -178,7 +178,7 @@ deploy:
     - main
 ```
 
-![Снимок экрана 2024-11-25 205122](https://github.com/user-attachments/assets/df70c15c-4ee2-4e6a-ad7e-813cdf95fea2)
+![image](https://github.com/user-attachments/assets/ee953cb6-0564-4412-9b98-561330a88b59)
 
 Ура по-бе-да!
 
